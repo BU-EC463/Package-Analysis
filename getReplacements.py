@@ -1,3 +1,4 @@
+import pandas as pd
 from DosageInfo import addDosageInfo
 
 def getReplacements(input, data):
