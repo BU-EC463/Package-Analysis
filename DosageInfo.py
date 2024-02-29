@@ -1,3 +1,7 @@
+import pandas as pd
+import re
+import numpy as np
+
 def addDosageInfo(inputData):
     def extractDosage(size_str):
         # Ensure the input is a string
@@ -7,16 +11,31 @@ def addDosageInfo(inputData):
 
         # Turn string to uppercase for case-insensitive matching
         size_str = size_str.upper()
+
+        # Change 'X' to ' * ' for easier matching
+        size_str = size_str.replace('X', ' * ')
+
+        # Change '/' to ' / ' for easier matching
+        size_str = size_str.replace('/', ' / ')
         
         # Simplified logic for MG, %, ML extraction
         # Looks for a number (with optional decimal) immediately before the unit, with optional space
-        for unit in ['MG', '%', 'ML', 'GM', 'MCG', 'OZ', 'IU', 'MEQ', 'UN', 'MM', 'HR', 'MMOL', 'KG', 'BP', 'L', 'CM', 'CC', 'CAL', 'LB', 'IN', 'GR', 'GAL', 'LT', 'USP', 'MU', 'G', 'M']:
+        for unit in ['MG', '%', 'ML', 'GM', 'MCG', 'OZ', 'IU', 'MEQ', 'UN', 'MM', 'HR', 'MMOL', 'KG', 'BP', 'L', 'CM', 'CC', 'CAL', 'LB', 'IN', 'GR', 'GAL', 'LT', 'USP', 'MU']:
             pattern = r'(\d+(?:\.\d*)?)\s*{}'.format(unit)
             match = re.search(pattern, size_str, re.IGNORECASE)
             if match and 'X' not in match.group(1):
                 # Convert matched value to float and assign to the correct unit
                 extracted_values[unit] = float(match.group(1))
-                break
+
+        # If no MG, ML, MCG, MEQ, MM, MMOL, MU, GM, GR, GAL are not found, check for M and G
+        if extracted_values['MG'] is None and extracted_values['ML'] is None and extracted_values['MCG'] is None and extracted_values['MEQ'] is None and extracted_values['MM'] is None and extracted_values['MMOL'] is None and extracted_values['MU'] is None and extracted_values['GM'] is None and extracted_values['GR'] is None and extracted_values['GAL'] is None:
+            # Check for M and G
+            for unit in ['M', 'G']:
+                pattern = r'(\d+(?:\.\d*)?)\s*{}'.format(unit)
+                match = re.search(pattern, size_str, re.IGNORECASE)
+                if match and 'X' not in match.group(1):
+                    # Convert matched value to float and assign to the correct unit
+                    extracted_values[unit] = float(match.group(1))
         
         return extracted_values
 
@@ -82,3 +101,4 @@ def addDosageInfo(inputData):
 
     # Now inputData contains only the totalized columns and any other non-related columns
     return inputData
+    
